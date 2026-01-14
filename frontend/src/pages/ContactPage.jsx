@@ -27,18 +27,55 @@ const ContactPage = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    // Sanitize input to prevent XSS
+    const sanitizedValue = sanitizeText(value);
+    setFormData({ ...formData, [name]: sanitizedValue });
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Rate limiting check
+    if (!contactFormRateLimiter.isAllowed('contact_form')) {
+      toast({
+        title: 'Too Many Requests',
+        description: 'Please wait a minute before submitting again.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    // Validate email
+    if (!isValidEmail(formData.email)) {
+      toast({
+        title: 'Invalid Email',
+        description: 'Please enter a valid email address.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    // Validate phone if provided
+    if (formData.phone && !isValidPhone(formData.phone)) {
+      toast({
+        title: 'Invalid Phone',
+        description: 'Please enter a valid phone number.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
     setSubmitting(true);
-
+    
     try {
-      await mockSubmitContact(formData);
+      // Sanitize all form data before submission
+      const sanitizedData = sanitizeFormData(formData);
+      
+      await mockSubmitContact(sanitizedData);
       toast({
         title: t('contactPage.successTitle'),
-        description: t('contactPage.successDesc')
+        description: t('contactPage.successDesc'),
       });
       setFormData({ name: '', email: '', phone: '', message: '' });
     } catch (error) {
