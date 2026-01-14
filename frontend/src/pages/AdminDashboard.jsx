@@ -186,119 +186,119 @@ const AdminDashboard = () => {
   if (!user) return null;
   
   return (
-    <div className=\"min-h-screen bg-white\">
+    <div  className="min-h-screen bg-white">
       {/* Header */}
-      <div className=\"bg-black text-white py-6 px-6 shadow-lg\">
-        <div className=\"max-w-7xl mx-auto flex justify-between items-center\">
+      <div  className="bg-black text-white py-6 px-6 shadow-lg">
+        <div  className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
-            <h1 className=\"font-serif text-3xl mb-1\">Admin Dashboard</h1>
-            <p className=\"font-sans text-sm text-gray-400\">Sandhora Tailor Gallery Management</p>
+            <h1  className="font-serif text-3xl mb-1">Admin Dashboard</h1>
+            <p  className="font-sans text-sm text-gray-400">Sandhora Tailor Gallery Management</p>
           </div>
-          <div className=\"flex items-center gap-6\">
-            <div className=\"text-right\">
-              <p className=\"font-sans text-sm font-medium\">{sanitizeText(user.name)}</p>
-              <p className=\"font-sans text-xs text-gray-400\">{sanitizeText(user.email)}</p>
+          <div  className="flex items-center gap-6">
+            <div  className="text-right">
+              <p  className="font-sans text-sm font-medium">{sanitizeText(user.name)}</p>
+              <p  className="font-sans text-xs text-gray-400">{sanitizeText(user.email)}</p>
             </div>
             <Button
               onClick={handleLogout}
-              variant=\"outline\"
-              className=\"border-white text-white hover:bg-white hover:text-black font-sans text-sm\"
+              variant="outline"
+               className="border-white text-white hover:bg-white hover:text-black font-sans text-sm"
             >
-              <LogOut className=\"w-4 h-4 mr-2\" />
+              <LogOut  className="w-4 h-4 mr-2" />
               Logout
             </Button>
           </div>
         </div>
       </div>
       
-      <div className=\"max-w-7xl mx-auto px-6 py-12\">
-        <div className=\"grid lg:grid-cols-3 gap-8\">
+      <div  className="max-w-7xl mx-auto px-6 py-12">
+        <div  className="grid lg:grid-cols-3 gap-8">
           {/* Upload Form */}
-          <div className=\"lg:col-span-1\">
+          <div  className="lg:col-span-1">
             <motion.div
-              className=\"bg-gray-100 p-8 rounded-lg border-2 border-black sticky top-6\"
+               className="bg-gray-100 p-8 rounded-lg border-2 border-black sticky top-6"
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <h2 className=\"font-serif text-3xl mb-6 text-black\">Add New Image</h2>
+              <h2  className="font-serif text-3xl mb-6 text-black">Add New Image</h2>
               
-              <form onSubmit={handleSubmit} className=\"space-y-6\">
+              <form onSubmit={handleSubmit}  className="space-y-6">
                 <div>
-                  <label className=\"font-sans text-sm font-medium text-black mb-2 block uppercase tracking-wide\">
+                  <label  className="font-sans text-sm font-medium text-black mb-2 block uppercase tracking-wide">
                     Title
                   </label>
                   <Input
-                    type=\"text\"
-                    name=\"title\"
+                    type="text"
+                    name="title"
                     value={formData.title}
                     onChange={handleChange}
                     required
                     maxLength={100}
-                    className=\"bg-white border-2 border-gray-300 focus:border-black font-sans\"
-                    placeholder=\"Image title\"
+                     className="bg-white border-2 border-gray-300 focus:border-black font-sans"
+                    placeholder="Image title"
                   />
                 </div>
                 
                 <div>
-                  <label className=\"font-sans text-sm font-medium text-black mb-2 block uppercase tracking-wide\">
+                  <label  className="font-sans text-sm font-medium text-black mb-2 block uppercase tracking-wide">
                     Description
                   </label>
                   <Textarea
-                    name=\"description\"
+                    name="description"
                     value={formData.description}
                     onChange={handleChange}
                     required
                     maxLength={500}
                     rows={3}
-                    className=\"bg-white border-2 border-gray-300 focus:border-black font-sans resize-none\"
-                    placeholder=\"Brief description\"
+                     className="bg-white border-2 border-gray-300 focus:border-black font-sans resize-none"
+                    placeholder="Brief description"
                   />
                 </div>
                 
                 <div>
-                  <label className=\"font-sans text-sm font-medium text-black mb-2 block uppercase tracking-wide\">
+                  <label  className="font-sans text-sm font-medium text-black mb-2 block uppercase tracking-wide">
                     Category
                   </label>
                   <select
-                    name=\"category\"
+                    name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className=\"w-full bg-white border-2 border-gray-300 rounded-md px-3 py-2 font-sans focus:outline-none focus:border-black\"
+                     className="w-full bg-white border-2 border-gray-300 rounded-md px-3 py-2 font-sans focus:outline-none focus:border-black"
                   >
-                    <option value=\"suits\">Suits</option>
-                    <option value=\"formal\">Formal</option>
-                    <option value=\"traditional\">Traditional</option>
-                    <option value=\"business\">Business</option>
-                    <option value=\"casual\">Casual</option>
+                    <option value="suits">Suits</option>
+                    <option value="formal">Formal</option>
+                    <option value="traditional">Traditional</option>
+                    <option value="business">Business</option>
+                    <option value="casual">Casual</option>
                   </select>
                 </div>
                 
                 <div>
-                  <label className=\"font-sans text-sm font-medium text-black mb-2 block uppercase tracking-wide\">
+                  <label  className="font-sans text-sm font-medium text-black mb-2 block uppercase tracking-wide">
                     Image Upload (Max 10MB)
                   </label>
-                  <div className=\"relative\">
+                  <div  className="relative">
                     <input
-                      type=\"file\"
-                      accept=\"image/jpeg,image/jpg,image/png,image/webp,image/gif\"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
                       onChange={handleImageUpload}
-                      className=\"hidden\"
-                      id=\"image-upload\"
+                       className="hidden"
+                      id="image-upload"
                     />
                     <label
-                      htmlFor=\"image-upload\"
-                      className=\"flex items-center justify-center gap-2 w-full bg-white border-2 border-dashed border-gray-400 hover:border-black rounded-md py-8 cursor-pointer transition-colors duration-300\"
+                      htmlFor="image-upload"
+                       className="flex items-center justify-center gap-2 w-full bg-white border-2 border-dashed border-gray-400 hover:border-black rounded-md py-8 cursor-pointer transition-colors duration-300"
                     >
                       {formData.imageUrl ? (
-                        <div className=\"text-center\">
-                          <ImageIcon className=\"w-8 h-8 text-black mx-auto mb-2\" />
-                          <span className=\"font-sans text-sm text-black\">Image Selected</span>
+                        <div  className="text-center">
+                          <ImageIcon  className="w-8 h-8 text-black mx-auto mb-2" />
+                          <span  className="font-sans text-sm text-black">Image Selected</span>
                         </div>
                       ) : (
-                        <div className=\"text-center\">
-                          <Upload className=\"w-8 h-8 text-gray-600 mx-auto mb-2\" />
-                          <span className=\"font-sans text-sm text-gray-600\">Click to upload</span>
+                        <div  className="text-center">
+                          <Upload  className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+                          <span  className="font-sans text-sm text-gray-600">Click to upload</span>
                         </div>
                       )}
                     </label>
@@ -306,13 +306,13 @@ const AdminDashboard = () => {
                 </div>
                 
                 <Button
-                  type=\"submit\"
+                  type="submit"
                   disabled={uploading}
-                  className=\"w-full bg-black hover:bg-gray-800 text-white font-sans font-medium text-base tracking-wider py-6 rounded transition-all duration-300 hover:shadow-xl\"
+                   className="w-full bg-black hover:bg-gray-800 text-white font-sans font-medium text-base tracking-wider py-6 rounded transition-all duration-300 hover:shadow-xl"
                 >
                   {uploading ? (
-                    <span className=\"flex items-center justify-center gap-2\">
-                      <div className=\"w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin\" />
+                    <span  className="flex items-center justify-center gap-2">
+                      <div  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       UPLOADING...
                     </span>
                   ) : (
@@ -324,51 +324,51 @@ const AdminDashboard = () => {
           </div>
           
           {/* Gallery Management with Pagination */}
-          <div className=\"lg:col-span-2\">
+          <div  className="lg:col-span-2">
             <motion.div
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <div className=\"flex justify-between items-center mb-8\">
-                <h2 className=\"font-serif text-4xl text-black\">Gallery Images ({images.length})</h2>
+              <div  className="flex justify-between items-center mb-8">
+                <h2  className="font-serif text-4xl text-black">Gallery Images ({images.length})</h2>
                 
                 {/* Pagination Info */}
                 {totalPages > 1 && (
-                  <div className=\"font-sans text-sm text-gray-600\">
+                  <div  className="font-sans text-sm text-gray-600">
                     Page {currentPage} of {totalPages}
                   </div>
                 )}
               </div>
               
               {loading ? (
-                <div className=\"flex justify-center items-center min-h-[400px]\">
-                  <div className=\"w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin\" />
+                <div  className="flex justify-center items-center min-h-[400px]">
+                  <div  className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : (
                 <>
-                  <div className=\"grid sm:grid-cols-2 gap-6 mb-8\">
+                  <div  className="grid sm:grid-cols-2 gap-6 mb-8">
                     {currentImages.map((image) => (
-                      <div key={image.id} className=\"bg-gray-100 rounded-lg overflow-hidden border-2 border-black shadow-md hover:shadow-xl transition-shadow duration-300\">
-                        <div className=\"aspect-[4/3] overflow-hidden\">
+                      <div key={image.id}  className="bg-gray-100 rounded-lg overflow-hidden border-2 border-black shadow-md hover:shadow-xl transition-shadow duration-300">
+                        <div  className="aspect-[4/3] overflow-hidden">
                           <img
                             src={image.imageUrl}
                             alt={sanitizeText(image.title)}
-                            className=\"w-full h-full object-cover\"
+                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <div className=\"p-6\">
-                          <h3 className=\"font-serif text-2xl mb-2 text-black\">{sanitizeText(image.title)}</h3>
-                          <p className=\"font-sans text-sm text-gray-600 mb-3\">{sanitizeText(image.description)}</p>
-                          <div className=\"flex justify-between items-center\">
-                            <span className=\"font-sans text-xs uppercase tracking-wider text-black font-medium\">{image.category}</span>
+                        <div  className="p-6">
+                          <h3  className="font-serif text-2xl mb-2 text-black">{sanitizeText(image.title)}</h3>
+                          <p  className="font-sans text-sm text-gray-600 mb-3">{sanitizeText(image.description)}</p>
+                          <div  className="flex justify-between items-center">
+                            <span  className="font-sans text-xs uppercase tracking-wider text-black font-medium">{image.category}</span>
                             <Button
                               onClick={() => handleDelete(image.id)}
-                              variant=\"destructive\"
-                              size=\"sm\"
-                              className=\"bg-red-600 hover:bg-red-700 text-white font-sans text-xs\"
+                              variant="destructive"
+                              size="sm"
+                               className="bg-red-600 hover:bg-red-700 text-white font-sans text-xs"
                             >
-                              <Trash2 className=\"w-4 h-4 mr-1\" />
+                              <Trash2  className="w-4 h-4 mr-1" />
                               Delete
                             </Button>
                           </div>
@@ -379,17 +379,17 @@ const AdminDashboard = () => {
                   
                   {/* Pagination Controls */}
                   {totalPages > 1 && (
-                    <div className=\"flex justify-center items-center gap-4 mt-8\">
+                    <div  className="flex justify-center items-center gap-4 mt-8">
                       <Button
                         onClick={() => goToPage(currentPage - 1)}
                         disabled={currentPage === 1}
-                        variant=\"outline\"
-                        className=\"border-2 border-black text-black hover:bg-black hover:text-white disabled:opacity-30 disabled:cursor-not-allowed\"
+                        variant="outline"
+                         className="border-2 border-black text-black hover:bg-black hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
                       >
-                        <ChevronLeft className=\"w-5 h-5\" />
+                        <ChevronLeft  className="w-5 h-5" />
                       </Button>
                       
-                      <div className=\"flex gap-2\">
+                      <div  className="flex gap-2">
                         {[...Array(totalPages)].map((_, index) => {
                           const page = index + 1;
                           // Show only relevant page numbers
@@ -415,7 +415,7 @@ const AdminDashboard = () => {
                             page === currentPage - 2 ||
                             page === currentPage + 2
                           ) {
-                            return <span key={page} className=\"flex items-center\">...</span>;
+                            return <span key={page}  className="flex items-center">...</span>;
                           }
                           return null;
                         })}
@@ -424,10 +424,10 @@ const AdminDashboard = () => {
                       <Button
                         onClick={() => goToPage(currentPage + 1)}
                         disabled={currentPage === totalPages}
-                        variant=\"outline\"
-                        className=\"border-2 border-black text-black hover:bg-black hover:text-white disabled:opacity-30 disabled:cursor-not-allowed\"
+                        variant="outline"
+                         className="border-2 border-black text-black hover:bg-black hover:text-white disabled:opacity-30 disabled:cursor-not-allowed"
                       >
-                        <ChevronRight className=\"w-5 h-5\" />
+                        <ChevronRight  className="w-5 h-5" />
                       </Button>
                     </div>
                   )}
