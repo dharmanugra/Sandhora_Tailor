@@ -6,9 +6,11 @@ import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
 import { useToast } from '../hooks/use-toast';
 import { contactInfo, mockSubmitContact } from '../mock';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const ContactPage = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -28,14 +30,14 @@ const ContactPage = () => {
     try {
       await mockSubmitContact(formData);
       toast({
-        title: 'Pesan Terkirim!',
-        description: 'Terima kasih telah menghubungi kami. Kami akan segera merespons.',
+        title: t('contactPage.successTitle'),
+        description: t('contactPage.successDesc'),
       });
       setFormData({ name: '', email: '', phone: '', message: '' });
     } catch (error) {
       toast({
         title: 'Error',
-        description: 'Gagal mengirim pesan. Silakan coba lagi.',
+        description: 'Failed to send message. Please try again.',
         variant: 'destructive'
       });
     } finally {
@@ -53,9 +55,9 @@ const ContactPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <h1 className="font-serif text-7xl mb-6 text-white">Hubungi Kami</h1>
+          <h1 className="font-serif text-7xl mb-6 text-white">{t('contactPage.title')}</h1>
           <p className="font-sans text-xl text-gray-400">
-            Mari ciptakan karya yang luar biasa bersama
+            {t('contactPage.subtitle')}
           </p>
         </motion.div>
       </div>
@@ -68,11 +70,23 @@ const ContactPage = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <h2 className="font-serif text-5xl mb-8 text-black">Kunjungi Atelier Kami</h2>
+            {/* Profile Photo */}
+            <motion.div
+              className="mb-12"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <img
+                src="https://customer-assets.emergentagent.com/job_bespoke-couture/artifacts/lygobk59_3f2ddc1962982c146524170517f5effe.png"
+                alt="Sandhora Tailor Team"
+                className="w-full h-80 object-cover rounded-lg border-4 border-black shadow-2xl"
+              />
+            </motion.div>
+            
+            <h2 className="font-serif text-5xl mb-8 text-black">{t('contactPage.visitTitle')}</h2>
             <p className="font-sans text-lg text-gray-600 mb-12 leading-relaxed">
-              Rasakan seni jahitan bespoke secara langsung. Atelier kami di Canggu, Bali 
-              menyambut Anda untuk menjelajahi kain, berdiskusi tentang desain, dan memulai 
-              perjalanan menuju kesempurnaan sartorial.
+              {t('contactPage.visitDesc')}
             </p>
             
             <div className="space-y-8">
@@ -85,7 +99,7 @@ const ContactPage = () => {
                   <Phone className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-sans font-medium text-lg text-black mb-2">Phone / WhatsApp</h3>
+                  <h3 className="font-sans font-medium text-lg text-black mb-2">{t('contactPage.phone')}</h3>
                   <a
                     href={`tel:${contactInfo.phone}`}
                     className="font-sans text-gray-600 hover:text-black transition-colors duration-300"
@@ -104,7 +118,7 @@ const ContactPage = () => {
                   <Mail className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-sans font-medium text-lg text-black mb-2">Email</h3>
+                  <h3 className="font-sans font-medium text-lg text-black mb-2">{t('contactPage.email')}</h3>
                   <a
                     href={`mailto:${contactInfo.email}`}
                     className="font-sans text-gray-600 hover:text-black transition-colors duration-300"
@@ -123,7 +137,7 @@ const ContactPage = () => {
                   <MapPin className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-sans font-medium text-lg text-black mb-2">Lokasi</h3>
+                  <h3 className="font-sans font-medium text-lg text-black mb-2">{t('contactPage.location')}</h3>
                   <p className="font-sans text-gray-600 leading-relaxed">
                     {contactInfo.address}
                   </p>
@@ -131,7 +145,7 @@ const ContactPage = () => {
               </motion.div>
             </div>
             
-            {/* Google Maps */}
+            {/* Google Maps - Updated link */}
             <motion.div
               className="mt-12 rounded-lg overflow-hidden border-2 border-black shadow-xl"
               initial={{ opacity: 0 }}
@@ -139,7 +153,7 @@ const ContactPage = () => {
               transition={{ delay: 0.4 }}
             >
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d788.5449819475538!2d115.13863!3d-8.63675!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zOMKwMzgnMTIuMyJTIDExNcKwMDgnMjAuMCJF!5e0!3m2!1sen!2sid!4v1234567890"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d493.7969124424398!2d115.14927256359427!3d-8.634162499999994!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd2392c9b749041%3A0xd35cea3a8e3f4030!2sSandhora%20Tailor!5e0!3m2!1sen!2sid!4v1705234567890!5m2!1sen!2sid"
                 width="100%"
                 height="300"
                 style={{ border: 0 }}
@@ -156,10 +170,10 @@ const ContactPage = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
             >
-              <h3 className="font-serif text-2xl mb-4 text-black">Jam Operasional</h3>
+              <h3 className="font-serif text-2xl mb-4 text-black">{t('contactPage.hours')}</h3>
               <div className="space-y-2 font-sans text-gray-600">
-                <p>Senin - Sabtu: 09:00 - 19:00</p>
-                <p>Minggu: Dengan Perjanjian</p>
+                <p>{t('contactPage.hoursWeekday')}</p>
+                <p>{t('contactPage.hoursWeekend')}</p>
               </div>
             </motion.div>
           </motion.div>
@@ -171,11 +185,11 @@ const ContactPage = () => {
             transition={{ duration: 0.8 }}
           >
             <div className="bg-gray-100 p-10 rounded-lg border-2 border-black">
-              <h2 className="font-serif text-4xl mb-6 text-black">Kirim Pesan</h2>
+              <h2 className="font-serif text-4xl mb-6 text-black">{t('contactPage.formTitle')}</h2>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label className="font-sans text-sm font-medium text-black mb-2 block tracking-wide uppercase">
-                    Nama
+                    {t('contactPage.name')}
                   </label>
                   <Input
                     type="text"
@@ -184,13 +198,13 @@ const ContactPage = () => {
                     onChange={handleChange}
                     required
                     className="bg-white border-2 border-gray-300 focus:border-black font-sans"
-                    placeholder="Nama lengkap Anda"
+                    placeholder={t('contactPage.namePlaceholder')}
                   />
                 </div>
                 
                 <div>
                   <label className="font-sans text-sm font-medium text-black mb-2 block tracking-wide uppercase">
-                    Email
+                    {t('contactPage.email')}
                   </label>
                   <Input
                     type="email"
@@ -199,13 +213,13 @@ const ContactPage = () => {
                     onChange={handleChange}
                     required
                     className="bg-white border-2 border-gray-300 focus:border-black font-sans"
-                    placeholder="email@anda.com"
+                    placeholder={t('contactPage.emailPlaceholder')}
                   />
                 </div>
                 
                 <div>
                   <label className="font-sans text-sm font-medium text-black mb-2 block tracking-wide uppercase">
-                    Telepon
+                    {t('contactPage.phone')}
                   </label>
                   <Input
                     type="tel"
@@ -213,13 +227,13 @@ const ContactPage = () => {
                     value={formData.phone}
                     onChange={handleChange}
                     className="bg-white border-2 border-gray-300 focus:border-black font-sans"
-                    placeholder="+62 XXX XXXX XXXX"
+                    placeholder={t('contactPage.phonePlaceholder')}
                   />
                 </div>
                 
                 <div>
                   <label className="font-sans text-sm font-medium text-black mb-2 block tracking-wide uppercase">
-                    Pesan
+                    {t('contactPage.message')}
                   </label>
                   <Textarea
                     name="message"
@@ -228,7 +242,7 @@ const ContactPage = () => {
                     required
                     rows={6}
                     className="bg-white border-2 border-gray-300 focus:border-black font-sans resize-none"
-                    placeholder="Ceritakan kebutuhan jahitan Anda..."
+                    placeholder={t('contactPage.messagePlaceholder')}
                   />
                 </div>
                 
@@ -240,12 +254,12 @@ const ContactPage = () => {
                   {submitting ? (
                     <span className="flex items-center justify-center gap-2">
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      MENGIRIM...
+                      {t('contactPage.sending')}
                     </span>
                   ) : (
                     <span className="flex items-center justify-center gap-2">
                       <Send className="w-5 h-5" />
-                      KIRIM PESAN
+                      {t('contactPage.sendButton')}
                     </span>
                   )}
                 </Button>
