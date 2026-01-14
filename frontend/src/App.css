@@ -32,3 +32,26 @@
         transform: rotate(360deg);
     }
 }
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #FAF9F7;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #C4B5A0;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #6B4E37;
+}
