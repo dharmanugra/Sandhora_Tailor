@@ -7,12 +7,23 @@ module.exports = {
   ],
   theme: {
   	extend: {
+  		fontFamily: {
+  			serif: ['Crimson Text', 'serif'],
+  			sans: ['Montserrat', 'sans-serif']
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
+  			'warm-sage': '#C4B5A0',
+  			'soft-taupe': '#D4C4B0',
+  			'rich-chocolate': '#6B4E37',
+  			'charcoal': '#2C2C2C',
+  			'cream-white': '#FAF9F7',
+  			'soft-gray': '#F5F3F0',
+  			'warm-gray': '#8B7D6B',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
