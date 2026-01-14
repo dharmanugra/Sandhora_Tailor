@@ -70,9 +70,9 @@ const ContactPage = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}>
 
-            {/* Profile Photo */}
+            {/* Profile Photo - Circle */}
             <motion.div
-              className="mb-12"
+              className="mb-12 flex justify-center"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}>
@@ -80,7 +80,7 @@ const ContactPage = () => {
               <img
                 src="https://customer-assets.emergentagent.com/job_bespoke-couture/artifacts/lygobk59_3f2ddc1962982c146524170517f5effe.png"
                 alt="Sandhora Tailor Team"
-                className="w-full h-80 object-cover rounded-lg border-4 border-black shadow-2xl" />
+                className="w-64 h-64 object-cover rounded-full border-4 border-black shadow-2xl" />
 
             </motion.div>
             
