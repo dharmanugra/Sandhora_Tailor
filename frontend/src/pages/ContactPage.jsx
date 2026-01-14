@@ -7,6 +7,13 @@ import { Textarea } from '../components/ui/textarea';
 import { useToast } from '../hooks/use-toast';
 import { contactInfo, mockSubmitContact } from '../mock';
 import { useLanguage } from '../contexts/LanguageContext';
+import { 
+  sanitizeText, 
+  isValidEmail, 
+  isValidPhone,
+  sanitizeFormData,
+  contactFormRateLimiter 
+} from '../utils/security';
 
 const ContactPage = () => {
   const { toast } = useToast();
