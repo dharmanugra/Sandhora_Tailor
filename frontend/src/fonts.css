@@ -1,0 +1,17 @@
+/* Google Fonts - The Seasons Light and Montserrat Classic */
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Text:wght@300;400;600&family=Montserrat:wght@300;400;500;700&display=swap');
+
+/* Using Crimson Text as alternative to The Seasons Light */
+:root {
+  --font-serif: 'Crimson Text', serif;
+  --font-sans: 'Montserrat', sans-serif;
+  
+  /* Color Palette - Elegant RetroVibe Commerce */
+  --warm-sage: #C4B5A0;
+  --soft-taupe: #D4C4B0;
+  --rich-chocolate: #6B4E37;
+  --charcoal: #2C2C2C;
+  --cream-white: #FAF9F7;
+  --soft-gray: #F5F3F0;
+  --warm-gray: #8B7D6B;
+}
