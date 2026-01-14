@@ -32,7 +32,7 @@ function App() {
   return (
     <div className="App">
       {showAnimation && !animationComplete && (
-        <ZipperOpeningAnimation onComplete={handleAnimationComplete} />
+        <PremiumZipperAnimation onComplete={handleAnimationComplete} />
       )}
       
       <BrowserRouter>
