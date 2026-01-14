@@ -1,341 +1,424 @@
 import React, { useState, useEffect } from 'react';
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import { motion, useMotionValue, animate } from 'framer-motion';
 
-const PremiumZipperAnimation = ({ onComplete }) => {
+const MonochromeZipperAnimation = ({ onComplete }) => {
+  const [stage, setStage] = useState('initial'); // initial, fabricDrop, zipper, complete
   const [progress, setProgress] = useState(0);
-  const [showBranding, setShowBranding] = useState(false);
-  const [complete, setComplete] = useState(false);
   
   const progressValue = useMotionValue(0);
   
   useEffect(() => {
-    // Start animation after brief delay
-    const startTimer = setTimeout(() => {
-      // Animate progress with custom easing (mimics fabric tension)
+    // Stage 1: Initial load with text
+    const stage1Timer = setTimeout(() => {
+      setStage('fabricDrop');
+    }, 1500);
+    
+    // Stage 2: Fabric slices drop
+    const stage2Timer = setTimeout(() => {
+      setStage('zipper');
+      
+      // Start zipper animation
       animate(progressValue, 1, {
-        duration: 3.5,
-        ease: [0.43, 0.13, 0.23, 0.96], // Custom cubic-bezier
+        duration: 3.2,
+        ease: [0.43, 0.13, 0.23, 0.96],
         onUpdate: (latest) => {
           setProgress(latest);
-          
-          // Show branding at 40%
-          if (latest >= 0.4 && !showBranding) {
-            setShowBranding(true);
-          }
         },
         onComplete: () => {
           setTimeout(() => {
-            setComplete(true);
+            setStage('complete');
             onComplete();
           }, 600);
         }
       });
-    }, 300);
+    }, 3500);
     
-    return () => clearTimeout(startTimer);
-  }, [progressValue, onComplete, showBranding]);
+    return () => {
+      clearTimeout(stage1Timer);
+      clearTimeout(stage2Timer);
+    };
+  }, [progressValue, onComplete]);
   
-  if (complete) return null;
+  if (stage === 'complete') return null;
   
-  // Calculate zipper pull position
+  // Calculate zipper position
   const zipperY = progress * 100;
+  const separationLeft = progress * -55;
+  const separationRight = progress * 55;
   
-  // Calculate fabric separation
-  const separationLeft = progress * -50;
-  const separationRight = progress * 50;
+  // Fabric slices for drop animation
+  const fabricSlices = Array.from({ length: 8 }, (_, i) => i);
   
   return (
-    <div className="fixed inset-0 z-[100] overflow-hidden" style={{ background: '#0a0a0a' }}>
-      {/* Left fabric panel */}
-      <motion.div
-        className="absolute top-0 left-0 w-1/2 h-full origin-right"
-        style={{
-          x: `${separationLeft}%`,
-          background: 'linear-gradient(90deg, #1a1a1a 0%, #2C2C2C 100%)',
-        }}
-      >
-        {/* Fabric texture overlay */}
-        <div 
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage: `
-              repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(255, 255, 255, 0.03) 2px,
-                rgba(255, 255, 255, 0.03) 4px
-              ),
-              repeating-linear-gradient(
-                90deg,
-                transparent,
-                transparent 2px,
-                rgba(255, 255, 255, 0.03) 2px,
-                rgba(255, 255, 255, 0.03) 4px
-              )
-            `,
-            backgroundSize: '4px 4px',
-          }}
-        />
-        
-        {/* Fabric edge curl effect */}
+    <div className="fixed inset-0 z-[100] overflow-hidden bg-black">
+      {/* Initial fabric with text */}
+      {stage === 'initial' && (
         <motion.div
-          className="absolute top-0 right-0 w-32 h-full"
+          className="absolute inset-0 flex items-center justify-center"
           style={{
-            background: `linear-gradient(to left, 
-              rgba(0,0,0,0.8) 0%,
-              rgba(0,0,0,0.4) 30%,
-              transparent 100%)`,
-            opacity: progress,
-            transform: `scaleX(${1 + progress * 0.3})`
-          }}
-        />
-        
-        {/* Wrinkle effects near zipper */}
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={`wrinkle-left-${i}`}
-            className="absolute right-0 w-2 h-12"
-            style={{
-              top: `${i * 5}%`,
-              background: 'rgba(0,0,0,0.3)',
-              filter: 'blur(2px)',
-              transformOrigin: 'right',
-              scaleX: progress > (i * 0.05) ? 1 - (progress * 0.5) : 1,
-              opacity: progress > (i * 0.05) ? 0.6 : 0,
-            }}
-          />
-        ))}
-      </motion.div>
-      
-      {/* Right fabric panel */}
-      <motion.div
-        className="absolute top-0 right-0 w-1/2 h-full origin-left"
-        style={{
-          x: `${separationRight}%`,
-          background: 'linear-gradient(270deg, #1a1a1a 0%, #2C2C2C 100%)',
-        }}
-      >
-        {/* Fabric texture overlay */}
-        <div 
-          className="absolute inset-0 opacity-40"
-          style={{
-            backgroundImage: `
-              repeating-linear-gradient(
-                0deg,
-                transparent,
-                transparent 2px,
-                rgba(255, 255, 255, 0.03) 2px,
-                rgba(255, 255, 255, 0.03) 4px
-              ),
-              repeating-linear-gradient(
-                90deg,
-                transparent,
-                transparent 2px,
-                rgba(255, 255, 255, 0.03) 2px,
-                rgba(255, 255, 255, 0.03) 4px
-              )
-            `,
-            backgroundSize: '4px 4px',
-          }}
-        />
-        
-        {/* Fabric edge curl effect */}
-        <motion.div
-          className="absolute top-0 left-0 w-32 h-full"
-          style={{
-            background: `linear-gradient(to right, 
-              rgba(0,0,0,0.8) 0%,
-              rgba(0,0,0,0.4) 30%,
-              transparent 100%)`,
-            opacity: progress,
-            transform: `scaleX(${1 + progress * 0.3})`
-          }}
-        />
-        
-        {/* Wrinkle effects near zipper */}
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={`wrinkle-right-${i}`}
-            className="absolute left-0 w-2 h-12"
-            style={{
-              top: `${i * 5}%`,
-              background: 'rgba(0,0,0,0.3)',
-              filter: 'blur(2px)',
-              transformOrigin: 'left',
-              scaleX: progress > (i * 0.05) ? 1 - (progress * 0.5) : 1,
-              opacity: progress > (i * 0.05) ? 0.6 : 0,
-            }}
-          />
-        ))}
-      </motion.div>
-      
-      {/* Zipper track - premium metallic */}
-      <motion.div
-        className="absolute left-1/2 top-0 transform -translate-x-1/2 w-1"
-        style={{
-          height: `${zipperY}%`,
-          background: 'linear-gradient(180deg, #C4B5A0 0%, #8B7D6B 50%, #C4B5A0 100%)',
-          boxShadow: `
-            0 0 10px rgba(196, 181, 160, 0.5),
-            inset 0 0 5px rgba(255, 255, 255, 0.3),
-            inset 0 0 10px rgba(0, 0, 0, 0.3)
-          `,
-        }}
-      >
-        {/* Zipper teeth - individual elements */}
-        {[...Array(Math.floor(zipperY / 3))].map((_, i) => (
-          <div
-            key={`tooth-${i}`}
-            className="absolute left-1/2 transform -translate-x-1/2"
-            style={{
-              top: `${i * 3}%`,
-              width: '8px',
-              height: '4px',
-              background: 'linear-gradient(90deg, #C4B5A0 0%, #F5F3F0 50%, #C4B5A0 100%)',
-              borderRadius: '1px',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.4)',
-            }}
-          />
-        ))}
-      </motion.div>
-      
-      {/* Zipper pull - realistic with swing */}
-      <motion.div
-        className="absolute left-1/2 transform -translate-x-1/2"
-        style={{
-          top: `${zipperY}%`,
-        }}
-        animate={{
-          rotate: [0, -2, 2, -2, 0],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      >
-        {/* Pull body */}
-        <div 
-          className="relative"
-          style={{
-            width: '20px',
-            height: '40px',
-            background: 'linear-gradient(135deg, #D4C4B0 0%, #C4B5A0 50%, #8B7D6B 100%)',
-            borderRadius: '4px',
-            boxShadow: `
-              0 4px 8px rgba(0,0,0,0.6),
-              inset 0 1px 2px rgba(255,255,255,0.4),
-              inset 0 -1px 2px rgba(0,0,0,0.3)
-            `,
-            border: '1px solid rgba(196, 181, 160, 0.5)',
+            background: 'linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 50%, #1a1a1a 100%)',
           }}
         >
-          {/* Pull ring */}
+          {/* Fabric texture */}
           <div 
-            className="absolute left-1/2 transform -translate-x-1/2 -bottom-4"
+            className="absolute inset-0 opacity-30"
             style={{
-              width: '18px',
-              height: '18px',
-              borderRadius: '50%',
-              background: 'radial-gradient(circle at 30% 30%, #F5F3F0, #C4B5A0)',
-              boxShadow: `
-                0 2px 4px rgba(0,0,0,0.5),
-                inset 0 1px 1px rgba(255,255,255,0.6)
+              backgroundImage: `
+                repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.02) 1px, rgba(255,255,255,0.02) 2px),
+                repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.02) 1px, rgba(255,255,255,0.02) 2px)
               `,
+              backgroundSize: '3px 3px',
             }}
           />
           
-          {/* Highlight reflection */}
-          <div 
-            className="absolute top-1 left-1 right-4 h-3 rounded-full"
-            style={{
-              background: 'linear-gradient(to bottom, rgba(255,255,255,0.4), transparent)',
-              filter: 'blur(1px)',
-            }}
-          />
-        </div>
-      </motion.div>
-      
-      {/* Branding overlay */}
-      {showBranding && (
-        <motion.div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: progress > 0.9 ? 0 : 1 }}
-          transition={{ duration: 1, delay: 0.2 }}
-        >
+          {/* Brand text on fabric */}
           <motion.div
-            className="text-center"
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ 
-              duration: 1.2, 
-              delay: 0.4,
-              ease: [0.43, 0.13, 0.23, 0.96]
-            }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
+            className="text-center relative z-10"
           >
-            <motion.h1
-              className="font-serif text-6xl md:text-9xl mb-6 tracking-tight"
-              style={{ 
-                color: '#FAF9F7',
-                textShadow: `
-                  0 2px 40px rgba(196, 181, 160, 0.6),
-                  0 4px 80px rgba(196, 181, 160, 0.4)
-                `,
+            <h1 
+              className="font-serif text-7xl md:text-9xl tracking-tight"
+              style={{
+                color: '#f5f5f5',
+                textShadow: '0 2px 30px rgba(255,255,255,0.15)',
                 fontWeight: 300,
+                letterSpacing: '0.02em',
               }}
-              animate={{
-                textShadow: [
-                  '0 2px 40px rgba(196, 181, 160, 0.6)',
-                  '0 2px 40px rgba(196, 181, 160, 0.8)',
-                  '0 2px 40px rgba(196, 181, 160, 0.6)',
-                ]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
             >
-              Sandhora Tailor
-            </motion.h1>
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.8 }}
-            >
-              <p
-                className="font-sans text-2xl md:text-3xl tracking-widest uppercase mb-2"
-                style={{ 
-                  color: '#C4B5A0',
-                  fontWeight: 300,
-                  letterSpacing: '0.3em'
-                }}
-              >
-                Bespoke Elegance
-              </p>
-              <motion.div
-                className="w-32 h-px mx-auto mt-4"
-                style={{ background: 'linear-gradient(90deg, transparent, #C4B5A0, transparent)' }}
-                initial={{ scaleX: 0 }}
-                animate={{ scaleX: 1 }}
-                transition={{ duration: 1, delay: 1 }}
-              />
-            </motion.div>
+              SANDHORA TAILOR
+            </h1>
           </motion.div>
         </motion.div>
       )}
       
+      {/* Fabric slices dropping */}
+      {stage === 'fabricDrop' && (
+        <div className="absolute inset-0">
+          {fabricSlices.map((slice) => (
+            <motion.div
+              key={slice}
+              className="absolute top-0"
+              style={{
+                left: `${slice * 12.5}%`,
+                width: '12.5%',
+                height: '100%',
+                background: slice % 2 === 0 
+                  ? 'linear-gradient(180deg, #1a1a1a 0%, #2a2a2a 100%)'
+                  : 'linear-gradient(180deg, #242424 0%, #1a1a1a 100%)',
+                boxShadow: '2px 0 10px rgba(0,0,0,0.5), -2px 0 10px rgba(0,0,0,0.5)',
+              }}
+              initial={{ y: 0 }}
+              animate={{ y: '100%' }}
+              transition={{
+                duration: 1.2,
+                delay: slice * 0.12,
+                ease: [0.6, 0.05, 0.2, 0.95],
+              }}
+            >
+              {/* Fabric texture on each slice */}
+              <div 
+                className="absolute inset-0 opacity-40"
+                style={{
+                  backgroundImage: `
+                    repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.02) 1px, rgba(255,255,255,0.02) 2px),
+                    repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.02) 1px, rgba(255,255,255,0.02) 2px)
+                  `,
+                  backgroundSize: '3px 3px',
+                }}
+              />
+              
+              {/* Weighted bottom shadow */}
+              <div 
+                className="absolute bottom-0 left-0 right-0 h-32"
+                style={{
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)',
+                }}
+              />
+            </motion.div>
+          ))}
+        </div>
+      )}
+      
+      {/* Zipper stage with fabric panels */}
+      {stage === 'zipper' && (
+        <>
+          {/* Left fabric panel */}
+          <motion.div
+            className="absolute top-0 left-0 w-1/2 h-full origin-right"
+            style={{
+              x: `${separationLeft}%`,
+              background: 'linear-gradient(90deg, #0a0a0a 0%, #1a1a1a 50%, #2a2a2a 100%)',
+            }}
+          >
+            {/* Fine fabric texture */}
+            <div 
+              className="absolute inset-0 opacity-40"
+              style={{
+                backgroundImage: `
+                  repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.015) 1px, rgba(255,255,255,0.015) 2px),
+                  repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.015) 1px, rgba(255,255,255,0.015) 2px)
+                `,
+                backgroundSize: '2px 2px',
+              }}
+            />
+            
+            {/* Grain texture overlay */}
+            <div 
+              className="absolute inset-0 opacity-20"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E")`,
+                backgroundSize: '200px 200px',
+              }}
+            />
+            
+            {/* Edge curl shadow */}
+            <motion.div
+              className="absolute top-0 right-0 w-40 h-full"
+              style={{
+                background: 'linear-gradient(to left, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 40%, transparent 100%)',
+                opacity: progress,
+              }}
+            />
+            
+            {/* Wrinkle lines near zipper */}
+            {[...Array(25)].map((_, i) => (
+              <motion.div
+                key={`wrinkle-left-${i}`}
+                className="absolute right-0"
+                style={{
+                  top: `${i * 4}%`,
+                  width: '3px',
+                  height: '8px',
+                  background: 'rgba(0,0,0,0.4)',
+                  filter: 'blur(1px)',
+                  transformOrigin: 'right',
+                  scaleX: progress > (i * 0.04) ? 1 - (progress * 0.6) : 1,
+                  opacity: progress > (i * 0.04) ? 0.7 : 0,
+                }}
+              />
+            ))}
+          </motion.div>
+          
+          {/* Right fabric panel */}
+          <motion.div
+            className="absolute top-0 right-0 w-1/2 h-full origin-left"
+            style={{
+              x: `${separationRight}%`,
+              background: 'linear-gradient(270deg, #0a0a0a 0%, #1a1a1a 50%, #2a2a2a 100%)',
+            }}
+          >
+            {/* Fine fabric texture */}
+            <div 
+              className="absolute inset-0 opacity-40"
+              style={{
+                backgroundImage: `
+                  repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.015) 1px, rgba(255,255,255,0.015) 2px),
+                  repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(255,255,255,0.015) 1px, rgba(255,255,255,0.015) 2px)
+                `,
+                backgroundSize: '2px 2px',
+              }}
+            />
+            
+            {/* Grain texture overlay */}
+            <div 
+              className="absolute inset-0 opacity-20"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.5'/%3E%3C/svg%3E")`,
+                backgroundSize: '200px 200px',
+              }}
+            />
+            
+            {/* Edge curl shadow */}
+            <motion.div
+              className="absolute top-0 left-0 w-40 h-full"
+              style={{
+                background: 'linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 40%, transparent 100%)',
+                opacity: progress,
+              }}
+            />
+            
+            {/* Wrinkle lines near zipper */}
+            {[...Array(25)].map((_, i) => (
+              <motion.div
+                key={`wrinkle-right-${i}`}
+                className="absolute left-0"
+                style={{
+                  top: `${i * 4}%`,
+                  width: '3px',
+                  height: '8px',
+                  background: 'rgba(0,0,0,0.4)',
+                  filter: 'blur(1px)',
+                  transformOrigin: 'left',
+                  scaleX: progress > (i * 0.04) ? 1 - (progress * 0.6) : 1,
+                  opacity: progress > (i * 0.04) ? 0.7 : 0,
+                }}
+              />
+            ))}
+          </motion.div>
+          
+          {/* Monochrome metal zipper track */}
+          <motion.div
+            className="absolute left-1/2 top-0 transform -translate-x-1/2"
+            style={{
+              height: `${zipperY}%`,
+              width: '2px',
+              background: 'linear-gradient(180deg, #a0a0a0 0%, #6a6a6a 30%, #505050 50%, #6a6a6a 70%, #a0a0a0 100%)',
+              boxShadow: `
+                0 0 8px rgba(200,200,200,0.3),
+                inset 0 0 3px rgba(255,255,255,0.4),
+                inset 0 0 8px rgba(0,0,0,0.4)
+              `,
+            }}
+          >
+            {/* Individual zipper teeth */}
+            {[...Array(Math.floor(zipperY / 2.5))].map((_, i) => (
+              <React.Fragment key={`tooth-${i}`}>
+                {/* Left tooth */}
+                <div
+                  className="absolute"
+                  style={{
+                    top: `${i * 2.5}%`,
+                    left: '-4px',
+                    width: '4px',
+                    height: '3px',
+                    background: 'linear-gradient(135deg, #d0d0d0 0%, #909090 50%, #707070 100%)',
+                    borderRadius: '1px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.5), inset 0 0.5px 1px rgba(255,255,255,0.3)',
+                  }}
+                />
+                {/* Right tooth */}
+                <div
+                  className="absolute"
+                  style={{
+                    top: `${i * 2.5}%`,
+                    right: '-4px',
+                    width: '4px',
+                    height: '3px',
+                    background: 'linear-gradient(135deg, #d0d0d0 0%, #909090 50%, #707070 100%)',
+                    borderRadius: '1px',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.5), inset 0 0.5px 1px rgba(255,255,255,0.3)',
+                  }}
+                />
+              </React.Fragment>
+            ))}
+          </motion.div>
+          
+          {/* Monochrome zipper pull */}
+          <motion.div
+            className="absolute left-1/2 transform -translate-x-1/2"
+            style={{
+              top: `${zipperY}%`,
+            }}
+            animate={{
+              rotate: [0, -1.5, 1.5, -1.5, 0],
+            }}
+            transition={{
+              duration: 2.5,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <div 
+              className="relative"
+              style={{
+                width: '22px',
+                height: '45px',
+                background: 'linear-gradient(135deg, #c0c0c0 0%, #909090 30%, #707070 60%, #505050 100%)',
+                borderRadius: '3px',
+                boxShadow: `
+                  0 4px 10px rgba(0,0,0,0.7),
+                  inset 0 1px 2px rgba(255,255,255,0.5),
+                  inset 0 -1px 2px rgba(0,0,0,0.4)
+                `,
+                border: '0.5px solid rgba(160,160,160,0.4)',
+              }}
+            >
+              {/* Zipper pull ring */}
+              <div 
+                className="absolute left-1/2 transform -translate-x-1/2 -bottom-5"
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle at 35% 35%, #e0e0e0, #909090)',
+                  boxShadow: `
+                    0 3px 6px rgba(0,0,0,0.6),
+                    inset 0 1px 2px rgba(255,255,255,0.6),
+                    inset 0 -1px 2px rgba(0,0,0,0.3)
+                  `,
+                }}
+              />
+              
+              {/* Metallic highlight */}
+              <div 
+                className="absolute top-1 left-1 right-3 h-4 rounded-full"
+                style={{
+                  background: 'linear-gradient(to bottom, rgba(255,255,255,0.5), transparent)',
+                  filter: 'blur(1.5px)',
+                }}
+              />
+            </div>
+          </motion.div>
+          
+          {/* Brand text overlay during zipper */}
+          {progress >= 0.3 && progress < 0.85 && (
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <motion.div
+                className="text-center"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 1, ease: 'easeOut' }}
+              >
+                <h1 
+                  className="font-serif text-6xl md:text-8xl tracking-tight mb-4"
+                  style={{
+                    color: '#f5f5f5',
+                    textShadow: '0 2px 40px rgba(255,255,255,0.2)',
+                    fontWeight: 300,
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  SANDHORA TAILOR
+                </h1>
+                <motion.p
+                  className="font-sans text-lg md:text-xl tracking-widest uppercase"
+                  style={{
+                    color: '#b0b0b0',
+                    fontWeight: 300,
+                    letterSpacing: '0.25em',
+                  }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1, delay: 0.3 }}
+                >
+                  BESPOKE CRAFTSMANSHIP
+                </motion.p>
+              </motion.div>
+            </motion.div>
+          )}
+        </>
+      )}
+      
       {/* Fade to landing page */}
-      {progress > 0.92 && (
+      {progress > 0.88 && stage === 'zipper' && (
         <motion.div
           className="absolute inset-0"
           style={{ background: '#FAF9F7' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.7 }}
         />
       )}
     </div>
   );
 };
 
-export default PremiumZipperAnimation;
+export default MonochromeZipperAnimation;
