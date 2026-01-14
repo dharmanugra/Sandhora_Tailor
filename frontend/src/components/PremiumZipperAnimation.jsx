@@ -1,352 +1,261 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 
-// Custom cloth simulation shader
-const ClothMaterial = ({ side, progress }) => {
-  const materialRef = useRef();
-  
-  useFrame(() => {
-    if (materialRef.current) {
-      materialRef.current.uniforms.uProgress.value = progress;
-      materialRef.current.uniforms.uTime.value += 0.01;
-    }
-  });
-  
-  const uniforms = useMemo(
-    () => ({
-      uProgress: { value: 0 },
-      uTime: { value: 0 },
-      uSide: { value: side }, // 0 = left, 1 = right
-      uColor: { value: new THREE.Color('#2C2C2C') },
-      uLightPos: { value: new THREE.Vector3(0, 5, 5) }
-    }),
-    [side]
-  );
-  
-  const vertexShader = `
-    uniform float uProgress;
-    uniform float uTime;
-    uniform float uSide;
-    
-    varying vec3 vNormal;
-    varying vec3 vPosition;
-    varying vec2 vUv;
-    varying float vDisplacement;
-    
-    // Fabric weave pattern
-    float weavePattern(vec2 uv) {
-      float weave = sin(uv.x * 120.0) * cos(uv.y * 120.0) * 0.01;
-      return weave;
-    }
-    
-    void main() {
-      vUv = uv;
-      vNormal = normal;
-      
-      vec3 pos = position;
-      
-      // Distance from center (zipper line)
-      float distFromCenter = abs(pos.x);
-      
-      // Zipper is at x=0, progress moves down from top
-      float zipperY = 1.0 - uProgress * 2.0; // -1 to 1 range
-      float isAboveZipper = step(zipperY, pos.y);
-      
-      // Fabric separation - only affects area above zipper
-      if (isAboveZipper > 0.5) {
-        // Smooth separation curve
-        float separationAmount = smoothstep(0.0, 0.3, uProgress);
-        float edgeFactor = smoothstep(0.0, 0.2, distFromCenter);
-        
-        // Move fabric outward
-        if (uSide < 0.5) {
-          pos.x -= separationAmount * edgeFactor * 1.5;
-        } else {
-          pos.x += separationAmount * edgeFactor * 1.5;
-        }
-        
-        // Curl edges outward (z displacement)
-        float curlAmount = separationAmount * edgeFactor;
-        pos.z += curlAmount * 0.3;
-        
-        // Add wrinkles near zipper line
-        float wrinkleIntensity = smoothstep(0.0, 0.15, distFromCenter) * (1.0 - smoothstep(0.15, 0.4, distFromCenter));
-        float wrinkle = sin(pos.y * 30.0 + uTime * 2.0) * wrinkleIntensity * 0.02;
-        pos.z += wrinkle;
-      }
-      
-      // Fabric compression near active zipper position
-      float zipperProximity = 1.0 - smoothstep(0.0, 0.15, abs(pos.y - zipperY));
-      float compression = zipperProximity * sin(distFromCenter * 40.0) * 0.015;
-      pos.z -= compression;
-      
-      // Fabric weight and gravity sag
-      float sag = pow(distFromCenter, 2.0) * 0.08 * (1.0 - pos.y * 0.5);
-      pos.z -= sag * isAboveZipper;
-      
-      // Add weave micro-displacement
-      pos.z += weavePattern(vUv) * (1.0 - separationAmount * 0.5);
-      
-      vDisplacement = pos.z;
-      vPosition = pos;
-      
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
-    }
-  `;
-  
-  const fragmentShader = `
-    uniform vec3 uColor;
-    uniform vec3 uLightPos;
-    uniform float uProgress;
-    
-    varying vec3 vNormal;
-    varying vec3 vPosition;
-    varying vec2 vUv;
-    varying float vDisplacement;
-    
-    // Fabric texture
-    float fabricNoise(vec2 uv) {
-      // Weave pattern
-      float weaveX = sin(uv.x * 100.0) * 0.5 + 0.5;
-      float weaveY = sin(uv.y * 100.0) * 0.5 + 0.5;
-      float weave = weaveX * weaveY;
-      
-      // Add subtle variation
-      float noise = fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453);
-      
-      return mix(weave, noise, 0.3) * 0.15;
-    }
-    
-    void main() {
-      // Fabric base color with texture
-      vec3 fabricColor = uColor + vec3(fabricNoise(vUv * 2.0));
-      
-      // Lighting calculation
-      vec3 lightDir = normalize(uLightPos - vPosition);
-      vec3 normal = normalize(vNormal);
-      
-      // Diffuse lighting
-      float diffuse = max(dot(normal, lightDir), 0.0);
-      diffuse = diffuse * 0.7 + 0.3; // Soften shadows
-      
-      // Specular highlight (subtle for fabric)
-      vec3 viewDir = normalize(cameraPosition - vPosition);
-      vec3 halfDir = normalize(lightDir + viewDir);
-      float specular = pow(max(dot(normal, halfDir), 0.0), 8.0) * 0.1;
-      
-      // Ambient occlusion based on displacement
-      float ao = 1.0 - (vDisplacement * 2.0);
-      ao = clamp(ao, 0.6, 1.0);
-      
-      // Edge darkening for depth
-      float edgeFactor = smoothstep(0.0, 0.1, abs(vPosition.x));
-      edgeFactor = 1.0 - edgeFactor * 0.3;
-      
-      // Combine lighting
-      vec3 finalColor = fabricColor * diffuse * ao * edgeFactor + vec3(specular);
-      
-      // Slight vignette on opened areas
-      float vignette = 1.0 - uProgress * 0.2;
-      finalColor *= vignette;
-      
-      gl_FragColor = vec4(finalColor, 1.0);
-    }
-  `;
-  
-  return (
-    <shaderMaterial
-      ref={materialRef}
-      vertexShader={vertexShader}
-      fragmentShader={fragmentShader}
-      uniforms={uniforms}
-      side={THREE.DoubleSide}
-    />
-  );
-};
-
-// Fabric panels
-const FabricPanel = ({ side, progress }) => {
-  const meshRef = useRef();
-  
-  // Higher resolution for smooth cloth simulation
-  const geometry = useMemo(() => {
-    return new THREE.PlaneGeometry(2, 2, 64, 64);
-  }, []);
-  
-  return (
-    <mesh ref={meshRef} geometry={geometry}>
-      <ClothMaterial side={side} progress={progress} />
-    </mesh>
-  );
-};
-
-// Realistic zipper with individual teeth
-const Zipper = ({ progress }) => {
-  const zipperGroupRef = useRef();
-  const zipperPullRef = useRef();
-  
-  useFrame((state) => {
-    if (zipperGroupRef.current) {
-      // Slight shimmer effect on metal
-      const shimmer = Math.sin(state.clock.elapsedTime * 2) * 0.02;
-      zipperGroupRef.current.children.forEach((child, i) => {
-        if (child.material && child.material.metalness) {
-          child.material.emissiveIntensity = 0.1 + shimmer;
-        }
-      });
-    }
-    
-    // Zipper pull swing with inertia
-    if (zipperPullRef.current) {
-      const swing = Math.sin(state.clock.elapsedTime * 3 + progress * 2) * 0.02 * (1 - progress);
-      zipperPullRef.current.rotation.z = swing;
-    }
-  });
-  
-  const teeth = useMemo(() => {
-    const teethArray = [];
-    const teethCount = 40;
-    const teethSpacing = 2 / teethCount;
-    
-    for (let i = 0; i < teethCount; i++) {
-      const y = 1 - (i * teethSpacing);
-      const isOpen = (1 - y) / 2 < progress;
-      
-      teethArray.push({
-        position: [isOpen ? -0.03 : -0.01, y, 0.01],
-        key: `left-${i}`,
-        side: 'left'
-      });
-      
-      teethArray.push({
-        position: [isOpen ? 0.03 : 0.01, y, 0.01],
-        key: `right-${i}`,
-        side: 'right'
-      });
-    }
-    
-    return teethArray;
-  }, [progress]);
-  
-  // Zipper material - brushed gold
-  const zipperMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
-      color: '#C4B5A0',
-      metalness: 0.9,
-      roughness: 0.3,
-      emissive: '#8B7D6B',
-      emissiveIntensity: 0.1
-    });
-  }, []);
-  
-  // Zipper pull position
-  const pullY = 1 - (progress * 2);
-  
-  return (
-    <group ref={zipperGroupRef}>
-      {/* Zipper teeth */}
-      {teeth.map((tooth) => (
-        <mesh key={tooth.key} position={tooth.position} material={zipperMaterial}>
-          <boxGeometry args={[0.01, 0.03, 0.01]} />
-        </mesh>
-      ))}
-      
-      {/* Zipper pull */}
-      <group ref={zipperPullRef} position={[0, pullY, 0.02]}>
-        <mesh material={zipperMaterial}>
-          <cylinderGeometry args={[0.02, 0.02, 0.08, 16]} />
-        </mesh>
-        <mesh position={[0, -0.06, 0]} material={zipperMaterial}>
-          <sphereGeometry args={[0.025, 16, 16]} />
-        </mesh>
-      </group>
-      
-      {/* Zipper tape/track */}
-      <mesh position={[0, 0, 0]} material={zipperMaterial}>
-        <boxGeometry args={[0.005, 2, 0.005]} />
-      </mesh>
-    </group>
-  );
-};
-
-// Three.js scene
-const Scene = ({ progress }) => {
-  return (
-    <>
-      {/* Lighting */}
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[0, 5, 5]} intensity={1.2} castShadow />
-      <pointLight position={[-3, 0, 2]} intensity={0.3} color="#C4B5A0" />
-      <pointLight position={[3, 0, 2]} intensity={0.3} color="#C4B5A0" />
-      
-      {/* Fabric panels */}
-      <FabricPanel side={0} progress={progress} />
-      <FabricPanel side={1} progress={progress} />
-      
-      {/* Zipper */}
-      <Zipper progress={progress} />
-    </>
-  );
-};
-
-// Main animation component
 const PremiumZipperAnimation = ({ onComplete }) => {
-  const [progress, setProgress] = React.useState(0);
-  const [showBranding, setShowBranding] = React.useState(false);
-  const [complete, setComplete] = React.useState(false);
+  const [progress, setProgress] = useState(0);
+  const [showBranding, setShowBranding] = useState(false);
+  const [complete, setComplete] = useState(false);
+  
+  const progressValue = useMotionValue(0);
   
   useEffect(() => {
-    // Animation timeline
-    const startDelay = setTimeout(() => {
-      // Zipper animation (3 seconds)
-      const duration = 3000;
-      const startTime = Date.now();
-      
-      const animate = () => {
-        const elapsed = Date.now() - startTime;
-        const newProgress = Math.min(elapsed / duration, 1);
-        
-        // Easing function - ease-in-out with slight drag
-        const eased = newProgress < 0.5
-          ? 4 * newProgress * newProgress * newProgress
-          : 1 - Math.pow(-2 * newProgress + 2, 3) / 2;
-        
-        setProgress(eased);
-        
-        // Show branding at 40%
-        if (eased >= 0.4 && !showBranding) {
-          setShowBranding(true);
-        }
-        
-        if (newProgress < 1) {
-          requestAnimationFrame(animate);
-        } else {
-          // Fabric parting complete
+    // Start animation after brief delay
+    const startTimer = setTimeout(() => {
+      // Animate progress with custom easing (mimics fabric tension)
+      animate(progressValue, 1, {
+        duration: 3.5,
+        ease: [0.43, 0.13, 0.23, 0.96], // Custom cubic-bezier
+        onUpdate: (latest) => {
+          setProgress(latest);
+          
+          // Show branding at 40%
+          if (latest >= 0.4 && !showBranding) {
+            setShowBranding(true);
+          }
+        },
+        onComplete: () => {
           setTimeout(() => {
             setComplete(true);
             onComplete();
-          }, 800);
+          }, 600);
         }
-      };
-      
-      animate();
-    }, 500);
+      });
+    }, 300);
     
-    return () => clearTimeout(startDelay);
-  }, [onComplete, showBranding]);
+    return () => clearTimeout(startTimer);
+  }, [progressValue, onComplete, showBranding]);
   
   if (complete) return null;
   
+  // Calculate zipper pull position
+  const zipperY = progress * 100;
+  
+  // Calculate fabric separation
+  const separationLeft = progress * -50;
+  const separationRight = progress * 50;
+  
   return (
-    <div className="fixed inset-0 z-[100]" style={{ background: '#1a1a1a' }}>
-      {/* Three.js Canvas */}
-      <Canvas
-        camera={{ position: [0, 0, 3], fov: 50 }}
-        gl={{ antialias: true, alpha: false }}
-        dpr={[1, 2]}
+    <div className="fixed inset-0 z-[100] overflow-hidden" style={{ background: '#0a0a0a' }}>
+      {/* Left fabric panel */}
+      <motion.div
+        className="absolute top-0 left-0 w-1/2 h-full origin-right"
+        style={{
+          x: `${separationLeft}%`,
+          background: 'linear-gradient(90deg, #1a1a1a 0%, #2C2C2C 100%)',
+        }}
       >
-        <Scene progress={progress} />
-      </Canvas>
+        {/* Fabric texture overlay */}
+        <div 
+          className="absolute inset-0 opacity-40"
+          style={{
+            backgroundImage: `
+              repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 255, 255, 0.03) 2px,
+                rgba(255, 255, 255, 0.03) 4px
+              ),
+              repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 255, 255, 0.03) 2px,
+                rgba(255, 255, 255, 0.03) 4px
+              )
+            `,
+            backgroundSize: '4px 4px',
+          }}
+        />
+        
+        {/* Fabric edge curl effect */}
+        <motion.div
+          className="absolute top-0 right-0 w-32 h-full"
+          style={{
+            background: `linear-gradient(to left, 
+              rgba(0,0,0,0.8) 0%,
+              rgba(0,0,0,0.4) 30%,
+              transparent 100%)`,
+            opacity: progress,
+            transform: `scaleX(${1 + progress * 0.3})`
+          }}
+        />
+        
+        {/* Wrinkle effects near zipper */}
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={`wrinkle-left-${i}`}
+            className="absolute right-0 w-2 h-12"
+            style={{
+              top: `${i * 5}%`,
+              background: 'rgba(0,0,0,0.3)',
+              filter: 'blur(2px)',
+              transformOrigin: 'right',
+              scaleX: progress > (i * 0.05) ? 1 - (progress * 0.5) : 1,
+              opacity: progress > (i * 0.05) ? 0.6 : 0,
+            }}
+          />
+        ))}
+      </motion.div>
+      
+      {/* Right fabric panel */}
+      <motion.div
+        className="absolute top-0 right-0 w-1/2 h-full origin-left"
+        style={{
+          x: `${separationRight}%`,
+          background: 'linear-gradient(270deg, #1a1a1a 0%, #2C2C2C 100%)',
+        }}
+      >
+        {/* Fabric texture overlay */}
+        <div 
+          className="absolute inset-0 opacity-40"
+          style={{
+            backgroundImage: `
+              repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 255, 255, 0.03) 2px,
+                rgba(255, 255, 255, 0.03) 4px
+              ),
+              repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 2px,
+                rgba(255, 255, 255, 0.03) 2px,
+                rgba(255, 255, 255, 0.03) 4px
+              )
+            `,
+            backgroundSize: '4px 4px',
+          }}
+        />
+        
+        {/* Fabric edge curl effect */}
+        <motion.div
+          className="absolute top-0 left-0 w-32 h-full"
+          style={{
+            background: `linear-gradient(to right, 
+              rgba(0,0,0,0.8) 0%,
+              rgba(0,0,0,0.4) 30%,
+              transparent 100%)`,
+            opacity: progress,
+            transform: `scaleX(${1 + progress * 0.3})`
+          }}
+        />
+        
+        {/* Wrinkle effects near zipper */}
+        {[...Array(20)].map((_, i) => (
+          <motion.div
+            key={`wrinkle-right-${i}`}
+            className="absolute left-0 w-2 h-12"
+            style={{
+              top: `${i * 5}%`,
+              background: 'rgba(0,0,0,0.3)',
+              filter: 'blur(2px)',
+              transformOrigin: 'left',
+              scaleX: progress > (i * 0.05) ? 1 - (progress * 0.5) : 1,
+              opacity: progress > (i * 0.05) ? 0.6 : 0,
+            }}
+          />
+        ))}
+      </motion.div>
+      
+      {/* Zipper track - premium metallic */}
+      <motion.div
+        className="absolute left-1/2 top-0 transform -translate-x-1/2 w-1"
+        style={{
+          height: `${zipperY}%`,
+          background: 'linear-gradient(180deg, #C4B5A0 0%, #8B7D6B 50%, #C4B5A0 100%)',
+          boxShadow: `
+            0 0 10px rgba(196, 181, 160, 0.5),
+            inset 0 0 5px rgba(255, 255, 255, 0.3),
+            inset 0 0 10px rgba(0, 0, 0, 0.3)
+          `,
+        }}
+      >
+        {/* Zipper teeth - individual elements */}
+        {[...Array(Math.floor(zipperY / 3))].map((_, i) => (
+          <div
+            key={`tooth-${i}`}
+            className="absolute left-1/2 transform -translate-x-1/2"
+            style={{
+              top: `${i * 3}%`,
+              width: '8px',
+              height: '4px',
+              background: 'linear-gradient(90deg, #C4B5A0 0%, #F5F3F0 50%, #C4B5A0 100%)',
+              borderRadius: '1px',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.4)',
+            }}
+          />
+        ))}
+      </motion.div>
+      
+      {/* Zipper pull - realistic with swing */}
+      <motion.div
+        className="absolute left-1/2 transform -translate-x-1/2"
+        style={{
+          top: `${zipperY}%`,
+        }}
+        animate={{
+          rotate: [0, -2, 2, -2, 0],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+      >
+        {/* Pull body */}
+        <div 
+          className="relative"
+          style={{
+            width: '20px',
+            height: '40px',
+            background: 'linear-gradient(135deg, #D4C4B0 0%, #C4B5A0 50%, #8B7D6B 100%)',
+            borderRadius: '4px',
+            boxShadow: `
+              0 4px 8px rgba(0,0,0,0.6),
+              inset 0 1px 2px rgba(255,255,255,0.4),
+              inset 0 -1px 2px rgba(0,0,0,0.3)
+            `,
+            border: '1px solid rgba(196, 181, 160, 0.5)',
+          }}
+        >
+          {/* Pull ring */}
+          <div 
+            className="absolute left-1/2 transform -translate-x-1/2 -bottom-4"
+            style={{
+              width: '18px',
+              height: '18px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle at 30% 30%, #F5F3F0, #C4B5A0)',
+              boxShadow: `
+                0 2px 4px rgba(0,0,0,0.5),
+                inset 0 1px 1px rgba(255,255,255,0.6)
+              `,
+            }}
+          />
+          
+          {/* Highlight reflection */}
+          <div 
+            className="absolute top-1 left-1 right-4 h-3 rounded-full"
+            style={{
+              background: 'linear-gradient(to bottom, rgba(255,255,255,0.4), transparent)',
+              filter: 'blur(1px)',
+            }}
+          />
+        </div>
+      </motion.div>
       
       {/* Branding overlay */}
       {showBranding && (
@@ -354,46 +263,75 @@ const PremiumZipperAnimation = ({ onComplete }) => {
           className="absolute inset-0 flex items-center justify-center pointer-events-none"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
+          exit={{ opacity: progress > 0.9 ? 0 : 1 }}
           transition={{ duration: 1, delay: 0.2 }}
         >
           <motion.div
             className="text-center"
-            initial={{ y: 20 }}
-            animate={{ y: 0 }}
-            transition={{ duration: 1, delay: 0.3, ease: [0.43, 0.13, 0.23, 0.96] }}
-            style={{
-              transform: `perspective(1000px) rotateX(${progress * -2}deg)`
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ 
+              duration: 1.2, 
+              delay: 0.4,
+              ease: [0.43, 0.13, 0.23, 0.96]
             }}
           >
             <motion.h1
-              className="font-serif text-6xl md:text-8xl mb-4 tracking-tight"
+              className="font-serif text-6xl md:text-9xl mb-6 tracking-tight"
               style={{ 
                 color: '#FAF9F7',
-                textShadow: '0 2px 20px rgba(196, 181, 160, 0.3)'
+                textShadow: `
+                  0 2px 40px rgba(196, 181, 160, 0.6),
+                  0 4px 80px rgba(196, 181, 160, 0.4)
+                `,
+                fontWeight: 300,
               }}
+              animate={{
+                textShadow: [
+                  '0 2px 40px rgba(196, 181, 160, 0.6)',
+                  '0 2px 40px rgba(196, 181, 160, 0.8)',
+                  '0 2px 40px rgba(196, 181, 160, 0.6)',
+                ]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
             >
               Sandhora Tailor
             </motion.h1>
-            <motion.p
-              className="font-sans text-xl md:text-2xl tracking-widest uppercase"
-              style={{ color: '#C4B5A0' }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 1, delay: 0.6 }}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.8 }}
             >
-              Bespoke Elegance
-            </motion.p>
+              <p
+                className="font-sans text-2xl md:text-3xl tracking-widest uppercase mb-2"
+                style={{ 
+                  color: '#C4B5A0',
+                  fontWeight: 300,
+                  letterSpacing: '0.3em'
+                }}
+              >
+                Bespoke Elegance
+              </p>
+              <motion.div
+                className="w-32 h-px mx-auto mt-4"
+                style={{ background: 'linear-gradient(90deg, transparent, #C4B5A0, transparent)' }}
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 1, delay: 1 }}
+              />
+            </motion.div>
           </motion.div>
         </motion.div>
       )}
       
       {/* Fade to landing page */}
-      {progress > 0.95 && (
+      {progress > 0.92 && (
         <motion.div
-          className="absolute inset-0 bg-cream-white"
+          className="absolute inset-0"
+          style={{ background: '#FAF9F7' }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6 }}
         />
       )}
     </div>
