@@ -15,7 +15,8 @@ const Header = () => {
   const navItems = [
     { name: t('home'), path: '/' },
     { name: t('gallery'), path: '/gallery' },
-    { name: t('contact'), path: '/contact' }
+    { name: t('contact'), path: '/contact' },
+    { name: language === 'id' ? 'LOGIN' : 'LOGIN', path: '/admin/login' }
   ];
   
   return (
