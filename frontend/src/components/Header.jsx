@@ -18,11 +18,15 @@ const Header = () => {
   
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-cream-white bg-opacity-95 backdrop-blur-md border-b border-soft-gray">
-      <nav className="max-w-7xl mx-auto px-6 py-5">
+      <nav className="max-w-7xl mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <Link to="/" className="font-serif text-2xl text-charcoal hover:text-warm-sage transition-colors duration-300">
-            Sandhora Tailor
+          <Link to="/" className="flex items-center hover:opacity-80 transition-opacity duration-300">
+            <img
+              src="https://customer-assets.emergentagent.com/job_bespoke-couture/artifacts/dbc27iph_Shandora%20Tailor%20Logo%20new.png"
+              alt="Sandhora Tailor"
+              className="h-12 md:h-14 w-auto"
+            />
           </Link>
           
           {/* Desktop Navigation */}
