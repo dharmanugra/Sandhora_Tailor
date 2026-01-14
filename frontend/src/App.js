@@ -3,7 +3,7 @@ import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import ZipperOpeningAnimation from "./components/ZipperOpeningAnimation";
+import PremiumZipperAnimation from "./components/PremiumZipperAnimation";
 import { Toaster } from "./components/ui/sonner";
 import LandingPage from "./pages/LandingPage";
 import GalleryPage from "./pages/GalleryPage";
