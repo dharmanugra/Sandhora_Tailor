@@ -17,13 +17,13 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
-  			'warm-sage': '#C4B5A0',
-  			'soft-taupe': '#D4C4B0',
-  			'rich-chocolate': '#6B4E37',
-  			'charcoal': '#2C2C2C',
-  			'cream-white': '#FAF9F7',
-  			'soft-gray': '#F5F3F0',
-  			'warm-gray': '#8B7D6B',
+  			'warm-sage': '#000000',
+  			'soft-taupe': '#f5f5f5',
+  			'rich-chocolate': '#1a1a1a',
+  			'charcoal': '#000000',
+  			'cream-white': '#ffffff',
+  			'soft-gray': '#f0f0f0',
+  			'warm-gray': '#666666',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
