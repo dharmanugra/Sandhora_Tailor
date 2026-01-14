@@ -1,7 +1,5 @@
-import React, { useRef, useMemo, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { motion } from 'framer-motion';
-import * as THREE from 'three';
+import React, { useState, useEffect } from 'react';
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 
 // Custom cloth simulation shader
 const ClothMaterial = ({ side, progress }) => {
